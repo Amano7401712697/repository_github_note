@@ -770,3 +770,343 @@ layui.use('form', function(){
 </html>
 ```
 
+### 更新渲染
+
+------
+
+## layui.layer弹出层
+
+#### 基础参数
+
+​	我们提到的基础参数主要指调用方法时用到的配置项，如：*layer.open({content: ''})**layer.msg('', {time: 3})*等，其中的content和time即是基础参数，以键值形式存在，基础参数*可合理应用于任何层类型中*，您不需要所有都去配置，大多数都是可选的。而其中的layer.open、layer.msg就是内置方法。注意，从2.3开始，无需通过layer.config来加载拓展模块.
+
+#####type 基本层类型
+
+​	类型：Number，默认：0
+
+​	layer提供了5种层类型。可传入的值有：*0*（信息框，默认）*1*（页面层）*2*（iframe层）*3*（加载层）*4*（tips层）。 若你采用*layer.open({type: 1})*方式调用，则type为必填项（信息框除外）
+
+#####title 标题
+
+​	类型：String/Array/Boolean，默认：'信息'
+
+​	title支持三种类型的值，若你传入的是普通的字符串，如*title :'我是标题'*，那么只会改变标题文本；若你还需要自定义标题区域样式，那么你可以*title: ['文本', 'font-size:18px;']*，数组第二项可以写任意css样式；如果你不想显示标题栏，你可以*title: false*
+
+#####content 内容
+
+​	类型：String/DOM/Array，默认：''
+
+​	content可传入的值是灵活多变的，不仅可以传入普通的html内容，还可以指定DOM，更可以随着type的不同而不同,示例:
+
+```javascript
+/!*
+ 如果是页面层
+ */
+layer.open({
+  type: 1, 
+  content: '传入任意的文本或html' //这里content是一个普通的String
+});
+layer.open({
+  type: 1,
+  content: $('#id') //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+});
+//Ajax获取
+$.post('url', {}, function(str){
+  layer.open({
+    type: 1,
+    content: str //注意，如果str是object，那么需要字符拼接。
+  });
+});
+/!*
+ 如果是iframe层
+ */
+layer.open({
+  type: 2, 
+  content: 'http://sentsin.com' //这里content是一个URL，如果你不想让iframe出现滚动条，你还可以content: ['http://sentsin.com', 'no']
+}); 
+/!*
+ 如果是用layer.open执行tips层
+ */
+layer.open({
+  type: 4,
+  content: ['内容', '#id'] //数组第二项即吸附元素选择器或者DOM
+});
+```
+
+#####area 宽高
+
+​	类型：String/Array，默认：'auto'
+
+​	在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以*area: '500px'*，高度仍然是自适应的。当你宽高都要定义时，你可以*area: ['500px', '300px']*
+
+#### btn 按钮
+
+信息框模式时，btn默认是一个确认按钮，其它层类型则默认不显示，加载层和tips层则无效。当您只想自定义一个按钮时，你可以*btn: '我知道了'*，当你要定义两个按钮时，你可以*btn: ['yes', 'no']*。当然，你也可以定义更多按钮，比如：*btn: ['按钮1', '按钮2', '按钮3', …]*，按钮1的回调是yes，而从按钮2开始，则回调为btn2: function(){}
+
+```javascript
+//eg1       
+layer.confirm('纳尼？', {
+  btn: ['按钮一', '按钮二', '按钮三'] //可以无限个按钮
+  ,btn3: function(index, layero){
+    //按钮【按钮三】的回调
+  }
+}, function(index, layero){
+  //按钮【按钮一】的回调
+}, function(index){
+  //按钮【按钮二】的回调
+});
+ 
+//eg2
+layer.open({
+  content: 'test'
+  ,btn: ['按钮一', '按钮二', '按钮三']
+  ,yes: function(index, layero){
+    //按钮【按钮一】的回调
+  }
+  ,btn2: function(index, layero){
+    //按钮【按钮二】的回调
+    
+    //return false 开启该代码可禁止点击该按钮关闭
+  }
+  ,btn3: function(index, layero){
+    //按钮【按钮三】的回调
+    
+    //return false 开启该代码可禁止点击该按钮关闭
+  }
+  ,cancel: function(){ 
+    //右上角关闭回调
+    
+    //return false 开启该代码可禁止点击该按钮关闭
+  }
+});
+```
+
+
+
+#####offset 偏移量
+
+​	类型：String/Array，默认：垂直水平居中
+
+​	offset默认情况下不用设置。如果需要弹出层有位置偏移可以配置:例如*offset: ['100px', '50px']*
+
+| 值                        | 备注                        |
+| :------------------------ | :-------------------------- |
+| offset: 'auto'            | 默认坐标，即垂直水平居中    |
+| offset: '100px'           | 只定义top坐标，水平保持居中 |
+| offset: ['100px', '50px'] | 同时定义top、left坐标       |
+| offset: 't'               | 快捷设置顶部坐标            |
+| offset: 'r'               | 快捷设置右边缘坐标          |
+| offset: 'b'               | 快捷设置底部坐标            |
+| offset: 'l'               | 快捷设置左边缘坐标          |
+| offset: 'lt'              | 快捷设置左上角              |
+| offset: 'lb'              | 快捷设置左下角              |
+| offset: 'rt'              | 快捷设置右上角              |
+| offset: 'rb'              | 快捷设置右下角              |
+
+#####success 回调函数
+
+类型：Function，默认：null
+
+当你需要在层创建完毕时即执行一些语句，可以通过该回调。success会携带两个参数，分别是*当前层DOM**当前层索引*。如：
+
+```javascript
+layui.code
+layer.open({
+  content: '测试回调',
+  success: function(layero, index){
+    console.log(layero, index);
+  }
+});   
+```
+
+#####yes 成功按钮回调
+
+类型：Function，默认：null
+
+该回调携带两个参数，分别为当前层索引、当前层DOM对象。如：
+
+```javascript
+layer.open({
+  content: '测试回调',
+  yes: function(index, layero){
+    //do something
+    layer.close(index); //如果设定了yes回调，需进行手工关闭
+  }
+});     
+```
+
+#####cancel 关闭按钮回调
+
+```javascript
+cancel: function(index, layero){ 
+  if(confirm('确定要关闭么')){ //只有当点击confirm框的确定时，该层才会关闭
+    layer.close(index)
+  }
+  return false; 
+}    
+```
+
+#####end 窗口销毁回调
+
+类型：Function，默认：null
+
+无论是确认还是取消，只要层被销毁了，end都会执行，不携带任何参数。
+
+####layer.config(options) 初始化全局配置
+
+加载layer的一些默认参数
+
+```javascript
+layer.config({
+  anim: 1, //默认动画风格
+  skin: 'layui-layer-molv' //默认皮肤
+  …
+});
+//除此之外，extend还允许你加载拓展的css皮肤，如：
+layer.config({
+  //如果是独立版的layer，则将myskin存放在./skin目录下
+  //如果是layui中使用layer，则将myskin存放在./css/modules/layer目录下
+  extend: 'myskin/style.css'
+});
+```
+
+####layer.open(options) 核心方法
+
+不管是使用哪种方式创建层，都是走*layer.open()*，创建任何类型的弹层都会返回一个当前层索引
+
+```javascript
+layui.code
+var index = layer.open({
+  content: 'test'
+});
+```
+
+####layer.alert(content, options, yes) 普通信息框
+
+```javascript
+//eg1
+layer.confirm('is not?', {icon: 3, title:'提示'}, function(index){
+  //do something
+  
+  layer.close(index);
+});
+//eg2
+layer.confirm('is not?', function(index){
+  //do something
+  
+  layer.close(index);
+});       
+```
+
+####layer.msg(content, options, end) 提示框
+
+```javascript
+//eg1
+layer.msg('只想弱弱提示');
+//eg2
+layer.msg('有表情地提示', {icon: 6}); 
+//eg3
+layer.msg('关闭后想做些什么', function(){
+  //do something
+}); 
+//eg
+layer.msg('同上', {
+  icon: 1,
+  time: 2000 //2秒关闭（如果不配置，默认是3秒）
+}, function(){
+  //do something
+});  
+```
+
+#### layer.load(icon, options) 加载层
+
+#### layer.close(index) - 关闭特定层
+
+```javascript
+//当你想关闭当前页的某个层时
+var index = layer.open();
+var index = layer.alert();
+var index = layer.load();
+var index = layer.tips();
+//正如你看到的，每一种弹层调用方式，都会返回一个index
+layer.close(index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+ 
+//如果你想关闭最新弹出的层，直接获取layer.index即可
+layer.close(layer.index); //它获取的始终是最新弹出的某个层，值是由layer内部动态递增计算的
+ 
+//当你在iframe页面关闭自身时
+var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+parent.layer.close(index); //再执行关闭 
+```
+
+####layer.closeAll(type) - 关闭所有层
+
+```javascript
+layer.closeAll(); //疯狂模式，关闭所有层
+layer.closeAll('dialog'); //关闭信息框
+layer.closeAll('page'); //关闭所有页面层
+layer.closeAll('iframe'); //关闭所有的iframe层
+layer.closeAll('loading'); //关闭加载层
+layer.closeAll('tips'); //关闭所有的tips层   
+```
+
+#### layer.photos(options)  相册层
+
+相册层，也可以称之为图片查看器。它的出场动画从layer内置的动画类型中随机展现。photos支持传入json和直接读取页面图片两种方式。
+
+**json:**
+
+```javascript
+$.getJSON('/jquery/layer/test/photos.json', function(json){
+  layer.photos({
+    photos: json
+    ,anim: 5 //0-6的选择，指定弹出图片动画类型，默认随机（请注意，3.0之前的版本用shift参数）
+  });
+}); 
+```
+
+```json
+{
+  "title": "", //相册标题
+  "id": 123, //相册id
+  "start": 0, //初始显示的图片序号，默认0
+  "data": [   //相册包含的图片，数组格式
+    {
+      "alt": "图片名",
+      "pid": 666, //图片id
+      "src": "", //原图地址
+      "thumb": "" //缩略图地址
+    }
+  ]
+}
+```
+
+**页面获取:**
+
+```html
+//HTML示例
+<div id="layer-photos-demo" class="layer-photos-demo">
+  <img layer-pid="图片id，可以不写" layer-src="大图地址" src="缩略图" alt="图片名">
+  <img layer-pid="图片id，可以不写" layer-src="大图地址" src="缩略图" alt="图片名">
+</div>
+ 
+<script>
+//调用示例
+layer.photos({
+  photos: '#layer-photos-demo'
+  ,anim: 5 //0-6的选择，指定弹出图片动画类型，默认随机（请注意，3.0之前的版本用shift参数）
+}); 
+</script>
+```
+
+**切换图片回调:**
+
+```javascript
+layer.photos({
+  photos: json/选择器,
+  tab: function(pic, layero){
+    console.log(pic) //当前图片的一些信息
+  }
+});
+```
+
