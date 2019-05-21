@@ -59,7 +59,14 @@ $ source /etc/profile  ##重新加载配置文件
 ## 安装mysql
 
 1. 下载安装包mysql  [下载链接](https://downloads.mysql.com/archives/community/)
-2. 卸载系统自带的Mariadb
+2. 安装依赖
+
+```shell
+yum install -y gcc-c++
+yum install -y numactl
+```
+
+1. 卸载系统自带的Mariadb
 
 ```cmd
 $ rpm -qa|grep mariadb
@@ -71,6 +78,13 @@ $ mariadb-libs-5.5.60-1.el7_5.x86_64 ##执行卸载
 
 ```cmd
 $ rm /etc/my.cnf
+```
+
+4. 解压mysql安装包
+
+```shell
+tar -zxvf mysql-5.7.24-linux-glibc2.12-x86_64.tar.gz
+mv mysql-5.7.24-linux-glibc2.12-x86_64 mysql
 ```
 
 4. 创建mysql用户和用户组
@@ -129,9 +143,46 @@ $ vi /etc/init.d/mysql
    5. 启动防火墙放行3306端口
 
    ```cmd
-   systemctl start firewalld
-   firewall-cmd --zone=public --add-port=3306/tcp --permanent
-   service firewalld restart
+   vim /etc/sysconfig/iptables
+   iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
+   service iptables restart
    ```
 
+   ## Mysql配置修改相关
+   
+   1.  允许远程连接Mysql
+   
+   ```sql
+   -- 登录mysql
+   mysql -uroot -p
+   grant all on *.* to 'root'@'%' identified by 'mysql' with grant option; 
+   flush privileges;
+   ```
+   
+   2.  新建用户并赋予权限
+   
+   ```sql
+   -- 选择mysql数据库
+   use mysql;
+   -- 从192.168.122.12登陆的用户
+   create user 'mysql'@'192.168.122.12' identified by 'mysql';
+   -- 从任意ip登陆的用户
+   create user 'mysql'@'%' identified by 'mysql';
+   -- 不做指定默认为'%'
+   create user 'mysql' identified by 'mysql';
+   -- 刷新MySQL的系统权限相关表，使添加用户操作生效，以免会出现拒绝访问
+   flush privileges;
+   
+   -- 赋予部分权限，其中的shopping.*表示对以shopping所有文件操作。
+   grant select,delete,update,insert on *.* to superboy@'localhost' identified by 'mysql';
+   flush privileges;
+   -- 赋予所有权限
+   grant all privileges on test.* to mysql@'%' identified by 'mysql';
+   flush privileges;
+   -- 撤销update权限
+   revoke update on simpleshop.* from superboy@localhost;
+   -- 撤销所有权限
+   revoke all on simpleshop.* from superboy@localhost;
+   ```
+   
    
