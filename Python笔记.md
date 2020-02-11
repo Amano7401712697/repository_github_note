@@ -489,12 +489,76 @@ class TestDict(unittest.TestCase):
 ​	要以读文件的模式打开一个文件对象，使用Python内置的`open()`函数，传入文件名和标示符
 
 ```python
-f = open('/Users/michael/test.txt', 'r')
+try:
+    f = open('/path/to/file', 'r',encoding='gbk', errors='ignore')
+    print(f.read())
+finally:
+    if f:
+        f.close()
 ```
 
+​	Python引入了`with`语句来自动帮我们调用`close()`方法，简写为
 
+```python
+with open('/path/to/file', 'r') as f:
+    print(f.read())
 
-
+#支持的方法有
+f.read() #一次读取文件全部内容
+f.readline() #读取一行
+f.readlines() #读取所有行，返回每行内容的list
+```
 
 ###写文件
+
+```python
+with open('/Users/michael/test.txt', 'w') as f:
+    f.write('Hello, world!')
+```
+
+------
+
+## 多线程
+
+###多进程
+
+​	Unix/Linux操作系统提供了一个`fork()`系统调用，它非常特殊。普通的函数调用，调用一次，返回一次，但是`fork()`调用一次，返回两次，因为操作系统自动把当前进程（称为父进程）复制了一份（称为子进程），然后，分别在父进程和子进程内返回。
+
+​	子进程永远返回`0`，而父进程返回子进程的ID。这样做的理由是，一个父进程可以fork出很多子进程，所以，父进程要记下每个子进程的ID，而子进程只需要调用`getppid()`就可以拿到父进程的ID。
+
+```python
+import os
+
+print('Process (%s) start...' % os.getpid())
+# Only works on Unix/Linux/Mac:
+pid = os.fork()
+if pid == 0:
+    print('I am child process (%s) and my parent is %s.' % (os.getpid(), os.getppid()))
+else:
+    print('I (%s) just created a child process (%s).' % (os.getpid(), pid))
+```
+
+### 多线程
+
+​	Python的标准库提供了两个模块：`_thread`和`threading`，`_thread`是低级模块，`threading`是高级模块，对`_thread`进行了封装。绝大多数情况下，我们只需要使用`threading`这个高级模块。启动一个线程就是把一个函数传入并创建`Thread`实例，然后调用`start()`开始执行
+
+```python
+import time, threading
+
+# 新线程执行的代码:
+def loop():
+    print('thread %s is running...' % threading.current_thread().name)
+    n = 0
+    while n < 5:
+        n = n + 1
+        print('thread %s >>> %s' % (threading.current_thread().name, n))
+        time.sleep(1)
+    print('thread %s ended.' % threading.current_thread().name)
+
+print('thread %s is running...' % threading.current_thread().name)
+t = threading.Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+print('thread %s ended.' % threading.current_thread().name)
+```
 
